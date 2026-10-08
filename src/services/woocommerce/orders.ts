@@ -1,19 +1,42 @@
 import { isWooConfigured, wooFetch } from './config';
 import { seedOrders } from '@/constants/seedCatalog';
 import type { WooOrder } from '@/types/woocommerce';
+import { getStorageItem, setStorageItem } from '@/utils/storage';
 
-let localOrders = [...seedOrders];
+const ORDERS_STORAGE_KEY = 'kalamkari_woo_orders_v1';
+
+function getStoredOrders(): any[] {
+  const raw = getStorageItem(ORDERS_STORAGE_KEY);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {}
+  }
+  return [...seedOrders];
+}
+
+let localOrders: any[] = getStoredOrders();
 
 export const wooOrderService = {
+  getLocalOrders(): any[] {
+    return localOrders;
+  },
+
+  addLocalOrder(order: any) {
+    localOrders = [order, ...localOrders];
+    setStorageItem(ORDERS_STORAGE_KEY, JSON.stringify(localOrders));
+  },
+
   async getCustomerOrders(customerId?: number | string): Promise<any[]> {
     if (isWooConfigured && customerId) {
       try {
         const orders = await wooFetch<WooOrder[]>(`orders?customer=${customerId}`);
-        if (orders && Array.isArray(orders)) {
+        if (orders && Array.isArray(orders) && orders.length > 0) {
           return orders;
         }
       } catch (err) {
-        console.warn('WooCommerce getCustomerOrders failed:', err);
+        console.warn('WooCommerce getCustomerOrders failed, using local orders:', err);
       }
     }
 
@@ -27,13 +50,13 @@ export const wooOrderService = {
           method: 'PUT',
           body: JSON.stringify({ status: status.toLowerCase() })
         });
-        return true;
       } catch (err) {
         console.warn(`WooCommerce updateOrderStatus for ID ${id} failed:`, err);
       }
     }
 
-    localOrders = localOrders.map(o => o.id === id ? { ...o, status } : o);
+    localOrders = localOrders.map(o => (String(o.id) === String(id) || o.number === id) ? { ...o, status } : o);
+    setStorageItem(ORDERS_STORAGE_KEY, JSON.stringify(localOrders));
     return true;
   }
 };

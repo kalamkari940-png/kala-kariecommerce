@@ -12,7 +12,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Kalamkari" }
+      { title: "Kalamkari | Delivering Your Pride — Handcrafted Luxury Couture" },
+      { name: "description", content: "Bespoke South Indian couture, raw silk Anarkalis, heirloom lehengas, and recreation outfits handcrafted with pride in Chennai." }
     ],
     links: [
       { rel: "stylesheet", href: appCss }

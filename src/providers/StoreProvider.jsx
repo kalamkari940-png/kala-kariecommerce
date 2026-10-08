@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StoreContext } from "@/contexts/StoreContext";
-import { DEFAULT_SETTINGS, ADMIN_PASSWORD, seedProducts, seedOrders } from "@/constants/seedCatalog";
-import { wooProductService } from "@/services/woocommerce/products";
+import { DEFAULT_SETTINGS, ADMIN_PASSWORD, seedProducts } from "@/constants/seedCatalog";
+import { wooProductService, normalizeWooProduct } from "@/services/woocommerce/products";
 import { wooAuthService } from "@/services/woocommerce/auth";
 import { wooCartService } from "@/services/woocommerce/cart";
 import { wooOrderService } from "@/services/woocommerce/orders";
@@ -13,30 +13,34 @@ const STORAGE_KEY = "kalamkari_store_v2";
 export function StoreProvider({ children }) {
   const [cart, setCart] = useState(() => wooCartService.getLocalCart());
   const [wishlist, setWishlist] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(() => seedProducts.map(normalizeWooProduct));
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [orders, setOrders] = useState(seedOrders);
+  const [orders, setOrders] = useState(() => wooOrderService.getLocalOrders());
   const [adminUnlocked, setAdminUnlocked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState(() => wooAuthService.getStoredUser());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code: 'KALAM5', discountPct: 5 }
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
 
-  // 1. Initial product load from WooCommerce API
+  // 1. Initial product load from WooCommerce API (with instant seed fallback)
   useEffect(() => {
+    let isMounted = true;
     async function loadProducts() {
       try {
         setLoading(true);
         const fetched = await wooProductService.getProducts({ per_page: 100 });
-        if (fetched && fetched.length > 0) {
+        if (isMounted && fetched && fetched.length > 0) {
           setProducts(fetched);
         }
       } catch (err) {
-        console.warn("WooCommerce product load fallback:", err);
+        console.warn("WooCommerce remote product fetch note:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
     loadProducts();
+    return () => { isMounted = false; };
   }, []);
 
   // 2. Load Local Storage Hydration on Client
@@ -45,17 +49,13 @@ export function StoreProvider({ children }) {
       const raw = getStorageItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed.wishlist) setWishlist(parsed.wishlist);
+        if (parsed.wishlist && Array.isArray(parsed.wishlist)) setWishlist(parsed.wishlist);
+        if (parsed.appliedCoupon) setAppliedCoupon(parsed.appliedCoupon);
         if (parsed.settings) {
-          const storedAnnouncements = parsed.settings.announcements || [];
-          const hasLegacyBanner = storedAnnouncements.some(
-            (a) => a.includes("15%") || a.includes("Sangeeth Couture Edit")
-          );
           setSettings({
             ...DEFAULT_SETTINGS,
             ...parsed.settings,
             tagline: DEFAULT_SETTINGS.tagline,
-            announcements: hasLegacyBanner ? DEFAULT_SETTINGS.announcements : (parsed.settings.announcements || DEFAULT_SETTINGS.announcements),
             contact: {
               ...DEFAULT_SETTINGS.contact,
               ...(parsed.settings.contact ?? {})
@@ -74,9 +74,9 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     if (!hydrated) return;
     wooCartService.saveLocalCart(cart);
-    const payload = { wishlist, settings, adminUnlocked };
+    const payload = { wishlist, settings, adminUnlocked, appliedCoupon };
     setStorageItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [cart, wishlist, settings, adminUnlocked, hydrated]);
+  }, [cart, wishlist, settings, adminUnlocked, appliedCoupon, hydrated]);
 
   // Auth helper methods
   const loginUser = async (email, password) => {
@@ -99,10 +99,30 @@ export function StoreProvider({ children }) {
   };
 
   const resetContent = useCallback(() => {
-    setProducts([]);
+    setProducts(seedProducts.map(normalizeWooProduct));
     setSettings(DEFAULT_SETTINGS);
-    setOrders(seedOrders);
+    setOrders(wooOrderService.getLocalOrders());
   }, []);
+
+  const applyCouponCode = (code) => {
+    const cleanCode = (code || '').trim().toUpperCase();
+    if (!cleanCode) return { success: false, message: 'Please enter a coupon code.' };
+    if (cleanCode === 'KALAM5' || cleanCode === 'KALAMKARI5') {
+      const coupon = { code: cleanCode, discountPct: 5, description: '5% First Order Privilege' };
+      setAppliedCoupon(coupon);
+      return { success: true, message: 'Coupon KALAM5 applied (5% OFF)!' };
+    }
+    if (cleanCode === 'ROYAL10' || cleanCode === 'FESTIVE10') {
+      const coupon = { code: cleanCode, discountPct: 10, description: '10% Festive Privilege' };
+      setAppliedCoupon(coupon);
+      return { success: true, message: `${cleanCode} applied (10% OFF)!` };
+    }
+    return { success: false, message: 'Invalid or expired promotional code.' };
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+  };
 
   const value = useMemo(() => {
     const detailedCart = cart.map((c) => {
@@ -111,6 +131,9 @@ export function StoreProvider({ children }) {
     }).filter(Boolean);
 
     const subtotal = detailedCart.reduce((s, i) => s + (i.product.price || 0) * i.qty, 0);
+    const discountAmount = appliedCoupon ? Math.round((subtotal * appliedCoupon.discountPct) / 100) : 0;
+    const shippingCost = subtotal > 4999 || subtotal === 0 ? 0 : 450;
+    const grandTotal = Math.max(0, subtotal - discountAmount + shippingCost);
 
     return {
       cart,
@@ -121,8 +144,16 @@ export function StoreProvider({ children }) {
       loginUser,
       registerUser,
       logoutUser,
+      appliedCoupon,
+      discountAmount,
+      applyCouponCode,
+      removeCoupon,
+      isCartDrawerOpen,
+      setIsCartDrawerOpen,
+      openCartDrawer: () => setIsCartDrawerOpen(true),
+      closeCartDrawer: () => setIsCartDrawerOpen(false),
 
-      addToCart: async (slug, size = "M", qty = 1) => {
+      addToCart: async (slug, size = "M", qty = 1, openDrawer = true) => {
         setCart((c) => {
           const idx = c.findIndex((x) => x.slug === slug && x.size === size);
           if (idx >= 0) {
@@ -133,8 +164,12 @@ export function StoreProvider({ children }) {
           return [...c, { slug, size, qty }];
         });
 
+        if (openDrawer) {
+          setIsCartDrawerOpen(true);
+        }
+
         // Trigger WooCommerce Store API cart sync if configured
-        const product = products.find(p => p.slug === slug);
+        const product = products.find(p => p.slug === slug || String(p.id) === String(slug));
         if (product && product.id) {
           await wooCartService.addItem(product.id, qty, size);
         }
@@ -154,10 +189,12 @@ export function StoreProvider({ children }) {
         setWishlist((w) => (w.includes(slug) ? w.filter((s) => s !== slug) : [...w, slug]));
       },
 
-      isWishlisted: (slug) => wishlist.includes(slug),
+      isWishlisted: (slug) => wishlist.includes(slug) || wishlist.includes(String(slug)),
       cartCount: cart.reduce((s, i) => s + i.qty, 0),
       wishlistCount: wishlist.length,
       subtotal,
+      shippingCost,
+      grandTotal,
       detailedCart,
       getProduct: (slug) => products.find((p) => p.slug === slug || String(p.id) === String(slug)),
 
@@ -180,6 +217,7 @@ export function StoreProvider({ children }) {
         const order = await wooCheckoutService.processCheckout(checkoutPayload);
         setOrders((os) => [order, ...os]);
         setCart([]);
+        setAppliedCoupon(null);
         return order;
       },
 
@@ -193,7 +231,7 @@ export function StoreProvider({ children }) {
       orders,
       updateOrderStatus: async (id, status) => {
         await wooOrderService.updateOrderStatus(id, status);
-        setOrders((os) => os.map((o) => o.id === id ? { ...o, status } : o));
+        setOrders((os) => os.map((o) => (o.id === id || o.number === id) ? { ...o, status } : o));
       },
 
       adminUnlocked,
@@ -207,11 +245,11 @@ export function StoreProvider({ children }) {
       lockAdmin: () => setAdminUnlocked(false),
       resetContent
     };
-  }, [cart, wishlist, products, loading, user, settings, orders, adminUnlocked, resetContent]);
+  }, [cart, wishlist, products, loading, user, appliedCoupon, settings, orders, adminUnlocked, resetContent]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
 export function formatINR(n) {
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n || 0);
 }

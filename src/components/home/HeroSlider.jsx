@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, Quote, Heart, Award } from "lucide-react";
 import hero from "@/assets/hero-1.jpg";
-import kirubavani1 from "@/assets/kirubavani-1.jpg";
-import kirubavaniCollage from "@/assets/kirubavani-collage.jpg";
+import founderPhoto1 from "@/assets/IMG-20260818-WA0022.jpg";
 import { useStore } from "@/hooks/useStore";
 
 export function HeroSlider() {
@@ -18,7 +17,7 @@ export function HeroSlider() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    }, 9000);
+    }, 10000);
     return () => clearInterval(timer);
   }, []);
 
@@ -170,7 +169,7 @@ export function HeroSlider() {
                 "A dream may begin with one person, but it grows because people believe in it. And for every person who trusted Kalamkari, chose us, came back to us or simply supported this journey — thank you. You helped turn a little dream into something real. 🤍"
               </div>
 
-              <div className="pt-2 flex items-center gap-4">
+              <div className="pt-2 flex items-center justify-between">
                 <div>
                   <p className="font-serif text-xl text-neutral-900 dark:text-white font-medium">— Kirubavani</p>
                   <p className="text-xs uppercase tracking-widest text-amber-800 dark:text-amber-400 font-semibold mt-0.5">
@@ -182,15 +181,15 @@ export function HeroSlider() {
 
             {/* Founder Image Right */}
             <div className="order-1 md:order-2 md:col-span-5">
-              <div className="relative aspect-[4/5] sm:aspect-[3/4] overflow-hidden rounded-xs shadow-2xl border-2 border-amber-800/30 dark:border-amber-400/30 group">
+              <div className="relative aspect-[4/5] sm:aspect-[3/4] overflow-hidden rounded-xs shadow-2xl border-2 border-amber-800/30 dark:border-amber-400/30 group bg-neutral-100 dark:bg-neutral-900">
                 <img
-                  src={kirubavani1}
+                  src={founderPhoto1}
                   alt="Kirubavani - Founder of Kalamkari"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-all duration-700 group-hover:scale-103"
                 />
 
                 {/* Overlaid luxury label */}
-                <div className="absolute bottom-6 left-6 right-6 bg-white/95 dark:bg-neutral-950/95 p-4 backdrop-blur-md border border-neutral-200/60 dark:border-neutral-800 rounded-xs shadow-xl flex items-center justify-between gap-3">
+                <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 bg-white/95 dark:bg-neutral-950/95 p-4 backdrop-blur-md border border-neutral-200/60 dark:border-neutral-800 rounded-xs shadow-xl flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-serif font-semibold text-neutral-900 dark:text-white">Kirubavani</p>
                     <p className="text-[9px] uppercase tracking-widest text-amber-800 dark:text-amber-400 font-semibold">Founder, Kalamkari</p>

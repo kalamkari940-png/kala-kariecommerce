@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -36,48 +37,50 @@
   --color-brand-cream: #fcfbf7;
 
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.25rem;
-  --background: #f7f4ee;
-  --foreground: #1c1917;
-  --card: #f2efe7;
-  --card-foreground: #1c1917;
-  --popover: #f7f4ee;
-  --popover-foreground: #1c1917;
-  --primary: #1c2d27;
-  --primary-foreground: #f7f4ee;
-  --secondary: #ede9df;
-  --secondary-foreground: #1c2d27;
-  --muted: #ede9df;
-  --muted-foreground: #6b6357;
-  --accent: #b4833e;
-  --accent-foreground: #ffffff;
-  --border: #e2ded5;
-  --input: #e2ded5;
-  --ring: #1c2d27;
+  --radius: 0.35rem;
+  --background: #F7F3EC;
+  --foreground: #102B24;
+  --card: #F0ECE4;
+  --card-foreground: #102B24;
+  --popover: #F7F3EC;
+  --popover-foreground: #102B24;
+  --primary: #102B24;
+  --primary-foreground: #F7F3EC;
+  --secondary: #EBE5DA;
+  --secondary-foreground: #102B24;
+  --muted: #EBE5DA;
+  --muted-foreground: #5E584D;
+  --accent: #B85C2D;
+  --accent-gold: #B4833E;
+  --accent-foreground: #FFFFFF;
+  --border: #E2DBD0;
+  --input: #E2DBD0;
+  --ring: #102B24;
 }
 
 .dark {
-  --background: #111d19;
-  --foreground: #f7f4ee;
-  --card: #162621;
-  --card-foreground: #f7f4ee;
-  --popover: #111d19;
-  --popover-foreground: #f7f4ee;
-  --primary: #b4833e;
-  --primary-foreground: #111d19;
-  --secondary: #1c2d27;
-  --secondary-foreground: #f7f4ee;
-  --muted: #1c2d27;
-  --muted-foreground: #a39c90;
-  --accent: #b4833e;
-  --accent-foreground: #111d19;
-  --border: rgba(226, 222, 213, 0.15);
-  --input: rgba(226, 222, 213, 0.2);
-  --ring: #b4833e;
+  --background: #0D1A16;
+  --foreground: #F7F3EC;
+  --card: #12241F;
+  --card-foreground: #F7F3EC;
+  --popover: #0D1A16;
+  --popover-foreground: #F7F3EC;
+  --primary: #B85C2D;
+  --primary-foreground: #0D1A16;
+  --secondary: #162B25;
+  --secondary-foreground: #F7F3EC;
+  --muted: #162B25;
+  --muted-foreground: #9E9689;
+  --accent: #B85C2D;
+  --accent-gold: #D4AF37;
+  --accent-foreground: #0D1A16;
+  --border: rgba(226, 219, 208, 0.15);
+  --input: rgba(226, 219, 208, 0.2);
+  --ring: #B85C2D;
 }
 
 @layer base {
@@ -98,6 +101,138 @@
     font-family: var(--font-serif);
     font-weight: 500;
   }
+}
+
+/* Glassmorphism Design System Utilities */
+.glass-nav {
+  background: rgba(247, 243, 236, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(184, 92, 45, 0.15);
+}
+
+.dark .glass-nav {
+  background: rgba(13, 26, 22, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 219, 208, 0.85);
+  box-shadow: 0 12px 36px -12px rgba(16, 43, 36, 0.08);
+}
+
+.dark .glass-panel {
+  background: rgba(18, 36, 31, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 12px 36px -12px rgba(0, 0, 0, 0.45);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 219, 208, 0.75);
+  box-shadow: 0 8px 24px -6px rgba(16, 43, 36, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(184, 92, 45, 0.35);
+  box-shadow: 0 18px 40px -10px rgba(184, 92, 45, 0.14);
+  transform: translateY(-3px);
+}
+
+.dark .glass-card {
+  background: rgba(18, 36, 31, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.35);
+}
+
+.dark .glass-card:hover {
+  background: rgba(18, 36, 31, 0.88);
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.6);
+  transform: translateY(-3px);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 219, 208, 0.85);
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #B85C2D;
+  box-shadow: 0 0 0 2px rgba(184, 92, 45, 0.15);
+}
+
+.dark .glass-input {
+  background: rgba(18, 36, 31, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dark .glass-input:focus {
+  background: rgba(18, 36, 31, 0.95);
+  border-color: #B85C2D;
+  box-shadow: 0 0 0 2px rgba(184, 92, 45, 0.25);
+}
+
+/* Gold Badges & Highlights */
+.gold-badge {
+  background: linear-gradient(135deg, #B4833E 0%, #926426 100%);
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.terracotta-badge {
+  background: linear-gradient(135deg, #B85C2D 0%, #8A3D18 100%);
+  color: #FFFFFF;
+}
+
+/* Micro-animations */
+@keyframes heartPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.animate-heart-pulse {
+  animation: heartPulse 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badgeBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+.animate-badge-bounce {
+  animation: badgeBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dark .glass-input {
+  background: rgba(22, 38, 33, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark .glass-input:focus {
+  background: rgba(22, 38, 33, 0.95);
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.15);
+}
+
+.gold-badge {
+  background: linear-gradient(135deg, rgba(28, 45, 39, 0.95), rgba(18, 35, 29, 0.95));
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fbbf24;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 @keyframes marquee {
@@ -122,4 +257,5 @@
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
 

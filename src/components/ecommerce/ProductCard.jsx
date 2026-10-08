@@ -40,7 +40,7 @@ export function ProductCard({ product, priority = false }) {
         ref={tiltRef}
         onMouseMove={onMove}
         onMouseLeave={onLeave}
-        className="relative overflow-hidden rounded-sm bg-[#ede9df] dark:bg-neutral-900 transition-transform duration-300 ease-out shadow-xs group-hover:shadow-md border border-neutral-300/60 dark:border-neutral-800"
+        className="relative overflow-hidden rounded-xs bg-[#ede9df]/60 dark:bg-neutral-900/60 transition-transform duration-300 ease-out shadow-xs group-hover:shadow-lg border border-neutral-300/70 dark:border-neutral-800"
       >
         <Link
           to="/product/$slug"
@@ -63,20 +63,20 @@ export function ProductCard({ product, priority = false }) {
           )}
 
           {badgeText && (
-            <span className="absolute left-3 top-3 bg-[#1c2d27]/90 backdrop-blur-md px-2.5 py-1 text-[9px] tracking-[0.2em] text-amber-300 uppercase font-semibold border border-amber-500/20 z-10">
+            <span className="absolute left-3 top-3 gold-badge px-2.5 py-0.5 text-[9px] tracking-[0.2em] uppercase font-bold z-10 shadow-sm">
               {badgeText}
             </span>
           )}
 
-          {/* Quick Add overlay */}
-          <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-[#1c2d27]/95 via-[#1c2d27]/70 to-transparent translate-y-full transition-transform duration-300 group-hover:translate-y-0 flex gap-2 z-20">
+          {/* Quick Add frosted glass overlay */}
+          <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-[#1c2d27]/95 via-[#1c2d27]/80 to-transparent translate-y-full transition-transform duration-300 group-hover:translate-y-0 flex gap-2 z-20 backdrop-blur-xs">
             <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 addToCart(product.slug, product.sizes?.[0] || "M", 1);
               }}
-              className="flex-1 bg-[#1c2d27] text-[#f7f4ee] py-2.5 text-[11px] tracking-widest uppercase font-semibold flex items-center justify-center gap-2 hover:bg-[#263e36] transition shadow-sm border border-amber-500/30"
+              className="flex-1 bg-[#1c2d27] text-[#f7f4ee] py-2.5 text-[11px] tracking-widest uppercase font-semibold flex items-center justify-center gap-2 hover:bg-[#263e36] transition shadow-md border border-amber-500/30"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
               Quick Add
@@ -109,9 +109,9 @@ export function ProductCard({ product, priority = false }) {
           {product.name}
         </Link>
         <div className="flex items-baseline gap-2 pt-0.5">
-          <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{formatINR(currentPrice)}</span>
+          <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 font-serif">{formatINR(currentPrice)}</span>
           {hasDiscount && (
-            <span className="text-xs text-neutral-400 line-through">
+            <span className="text-xs text-neutral-400 line-through font-serif">
               {formatINR(regularPrice)}
             </span>
           )}
@@ -120,4 +120,3 @@ export function ProductCard({ product, priority = false }) {
     </div>
   );
 }
-

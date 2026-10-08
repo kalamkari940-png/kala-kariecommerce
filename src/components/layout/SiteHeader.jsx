@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import { Heart, Menu, Search, ShoppingBag, User, X, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useStore } from "@/hooks/useStore";
+import { CartDrawer } from "@/components/ecommerce/CartDrawer";
 
 const leftNavLinks = [
   { label: "Best Sellers", to: "/shop", search: { category: "Best Sellers" } },
@@ -14,7 +15,7 @@ const rightNavLinks = [
 ];
 
 export function SiteHeader() {
-  const { cartCount, wishlistCount, settings } = useStore();
+  const { cartCount, wishlistCount, settings, products, isCartDrawerOpen, openCartDrawer, closeCartDrawer } = useStore();
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,10 +56,18 @@ export function SiteHeader() {
     }
   };
 
+  const matchingProducts = searchQuery.trim()
+    ? (products || []).filter((p) =>
+        p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 4)
+    : [];
+
   return (
     <header
-      className={`sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-md transition-all duration-300 ${
-        scrolled ? "shadow-sm py-2.5" : "py-4"
+      className={`sticky top-0 z-50 border-b border-border/40 bg-background/85 backdrop-blur-xl transition-all duration-300 ${
+        scrolled ? "shadow-md py-2.5" : "py-3.5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-6">
@@ -67,7 +76,7 @@ export function SiteHeader() {
           <button
             aria-label="Toggle Mobile Menu"
             onClick={() => setOpen(true)}
-            className="p-2 lg:hidden text-foreground hover:text-amber-800 transition-colors"
+            className="p-2 lg:hidden text-foreground hover:text-amber-800 dark:hover:text-amber-400 transition-colors"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -118,45 +127,46 @@ export function SiteHeader() {
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-2 text-foreground/80 hover:text-amber-800 dark:hover:text-amber-400 transition-colors"
-              aria-label="Search"
+              className="p-2 text-foreground/85 hover:text-amber-800 dark:hover:text-amber-400 hover:scale-110 transition-all cursor-pointer"
+              aria-label="Search Collection"
             >
               <Search className="h-4 w-4" />
             </button>
             <Link
               to="/account"
-              className="p-2 text-foreground/80 hover:text-amber-800 dark:hover:text-amber-400 transition-colors"
-              aria-label="Account"
+              className="p-2 text-foreground/85 hover:text-amber-800 dark:hover:text-amber-400 hover:scale-110 transition-all"
+              aria-label="Account Portal"
             >
               <User className="h-4 w-4" />
             </Link>
             <Link
               to="/wishlist"
-              className="relative p-2 text-foreground/80 hover:text-amber-800 dark:hover:text-amber-400 transition-colors"
-              aria-label="Wishlist"
+              className="relative p-2 text-foreground/85 hover:text-amber-800 dark:hover:text-amber-400 hover:scale-110 transition-all group"
+              aria-label="Saved Wishlist"
             >
-              <Heart className="h-4 w-4" />
+              <Heart className="h-4 w-4 transition-transform group-hover:scale-110" />
               {wishlistCount > 0 && <Badge>{wishlistCount}</Badge>}
             </Link>
-            <Link
-              to="/cart"
-              className="relative p-2 text-foreground/80 hover:text-amber-800 dark:hover:text-amber-400 transition-colors"
-              aria-label="Cart"
+            <button
+              type="button"
+              onClick={openCartDrawer}
+              className="relative p-2 text-foreground/85 hover:text-amber-800 dark:hover:text-amber-400 hover:scale-110 transition-all cursor-pointer group"
+              aria-label="Open Shopping Bag Drawer"
             >
-              <ShoppingBag className="h-4 w-4" />
-              {cartCount > 0 && <Badge>{cartCount}</Badge>}
-            </Link>
+              <ShoppingBag className="h-4 w-4 transition-transform group-hover:-rotate-6" />
+              {cartCount > 0 && <Badge className="animate-badge-bounce">{cartCount}</Badge>}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile navigation overlay */}
+      {/* Mobile navigation drawer overlay */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-background lg:hidden animate-in fade-in duration-300 flex flex-col">
-          <div className="flex items-center justify-between border-b border-border p-5">
+        <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-2xl lg:hidden animate-in fade-in duration-300 flex flex-col">
+          <div className="flex items-center justify-between border-b border-border/80 p-5">
             <div className="flex flex-col">
               <span className="text-2xl font-serif italic text-foreground">{settings.brandName}</span>
-              <span className="text-[8px] uppercase tracking-[0.3em] text-amber-800 font-semibold">Delivering Your Pride</span>
+              <span className="text-[8px] uppercase tracking-[0.3em] text-amber-800 dark:text-amber-400 font-semibold">Delivering Your Pride</span>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Close" className="p-2 text-foreground">
               <X className="h-6 w-6" />
@@ -188,19 +198,18 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
               className="border-b border-border/40 py-4 text-xl font-serif text-foreground"
             >
-              Account
+              Account Portal
             </Link>
           </nav>
         </div>
       )}
 
-      {/* Search overlay */}
+      {/* Search overlay modal */}
       {searchOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#f7f4ee] dark:bg-[#111d19] text-[#1c1917] dark:text-[#f7f4ee] flex flex-col animate-in fade-in duration-200">
-          {/* Search Modal Top Bar */}
-          <div className="border-b border-[#e2ded5] dark:border-neutral-800 px-4 sm:px-8 py-5 flex items-center justify-between bg-[#f7f4ee] dark:bg-[#111d19]">
+        <div className="fixed inset-0 z-[100] bg-[#f7f4ee]/95 dark:bg-[#111d19]/95 backdrop-blur-2xl text-[#1c1917] dark:text-[#f7f4ee] flex flex-col animate-in fade-in duration-200">
+          <div className="border-b border-[#e2ded5] dark:border-neutral-800 px-4 sm:px-8 py-5 flex items-center justify-between">
             <Link to="/" onClick={() => setSearchOpen(false)} className="flex flex-col">
-              <span className="font-serif italic text-2xl md:text-3xl text-foreground">
+              <span className="font-serif italic text-2xl md:text-3xl text-foreground font-semibold">
                 {settings.brandName || "Kalamkari"}
               </span>
               <span className="text-[8.5px] tracking-[0.3em] uppercase text-amber-800 dark:text-amber-400 font-semibold">
@@ -219,7 +228,6 @@ export function SiteHeader() {
             </button>
           </div>
 
-          {/* Search Body Container */}
           <div className="flex-1 overflow-y-auto max-w-4xl mx-auto w-full px-4 sm:px-6 pt-12 pb-16">
             <form onSubmit={handleSearchSubmit} className="relative">
               <div className="flex items-center gap-4 border-b-2 border-[#1c2d27] dark:border-amber-400 pb-4">
@@ -259,7 +267,7 @@ export function SiteHeader() {
                         setSearchOpen(false);
                         navigate({ to: "/shop", search: { search: term } });
                       }}
-                      className="rounded-full border border-neutral-300 dark:border-neutral-700 bg-[#ede9df]/50 dark:bg-neutral-800/50 px-5 py-2.5 text-xs uppercase tracking-wider text-foreground hover:border-[#1c2d27] hover:bg-[#1c2d27] hover:text-[#f7f4ee] dark:hover:border-amber-400 dark:hover:text-amber-400 transition shadow-xs"
+                      className="rounded-full border border-neutral-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-800/60 px-5 py-2.5 text-xs uppercase tracking-wider text-foreground hover:border-[#1c2d27] hover:bg-[#1c2d27] hover:text-[#f7f4ee] dark:hover:border-amber-400 dark:hover:text-amber-400 transition shadow-xs"
                     >
                       {term}
                     </button>
@@ -273,7 +281,7 @@ export function SiteHeader() {
               <div className="mt-10">
                 <div className="flex items-center justify-between mb-6">
                   <p className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">
-                    Matching Products
+                    Matching Products ({matchingProducts.length})
                   </p>
                   <button
                     onClick={handleSearchSubmit}
@@ -283,65 +291,57 @@ export function SiteHeader() {
                   </button>
                 </div>
 
-                {(() => {
-                  const matches = (useStore().products || []).filter((p) =>
-                    p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    p.description?.toLowerCase().includes(searchQuery.toLowerCase())
-                  ).slice(0, 4);
-
-                  if (matches.length === 0) {
-                    return (
-                      <p className="text-sm text-neutral-500 font-serif italic py-8">
-                        No products found for "{searchQuery}". Try searching for Anarkali, Lehenga, or Bridal.
-                      </p>
-                    );
-                  }
-
-                  return (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {matches.map((p) => (
-                        <Link
-                          key={p.slug || p.id}
-                          to="/product/$slug"
-                          params={{ slug: p.slug }}
-                          onClick={() => setSearchOpen(false)}
-                          className="group block bg-[#ede9df] dark:bg-neutral-900 rounded-xs overflow-hidden border border-neutral-300/60 dark:border-neutral-800 p-2 transition hover:shadow-md"
-                        >
-                          <div className="aspect-[3/4] overflow-hidden bg-neutral-200">
-                            <img
-                              src={p.image || p.images?.[0]?.src || "/placeholder.jpg"}
-                              alt={p.name}
-                              className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
-                            />
-                          </div>
-                          <div className="mt-2 space-y-0.5">
-                            <p className="text-[9px] uppercase tracking-widest text-amber-800 dark:text-amber-400 font-semibold">
-                              {p.category}
-                            </p>
-                            <p className="text-xs font-serif line-clamp-1 font-medium text-foreground">
-                              {p.name}
-                            </p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  );
-                })()}
+                {matchingProducts.length === 0 ? (
+                  <p className="text-sm text-neutral-500 font-serif italic py-8">
+                    No products found for "{searchQuery}". Try searching for Anarkali, Lehenga, or Silk.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {matchingProducts.map((p) => (
+                      <Link
+                        key={p.slug || p.id}
+                        to="/product/$slug"
+                        params={{ slug: p.slug }}
+                        onClick={() => setSearchOpen(false)}
+                        className="group block glass-card rounded-xs overflow-hidden p-2 transition hover:shadow-md"
+                      >
+                        <div className="aspect-[3/4] overflow-hidden bg-neutral-200 rounded-xs">
+                          <img
+                            src={p.image || p.images?.[0]?.src || "/placeholder.jpg"}
+                            alt={p.name}
+                            className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
+                          />
+                        </div>
+                        <div className="mt-2 space-y-0.5">
+                          <p className="text-[9px] uppercase tracking-widest text-amber-800 dark:text-amber-400 font-semibold">
+                            {p.category}
+                          </p>
+                          <p className="text-xs font-serif line-clamp-1 font-medium text-foreground">
+                            {p.name}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Interactive Luxury Glass Cart Drawer */}
+      <CartDrawer isOpen={isCartDrawerOpen} onClose={closeCartDrawer} />
     </header>
   );
 }
 
-function Badge({ children }) {
+function Badge({ children, className = "" }) {
   return (
-    <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-amber-800 text-white text-[9px] font-bold px-1">
+    <span className={`absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#B85C2D] dark:bg-amber-400 text-white dark:text-black text-[9px] font-bold px-1 shadow-sm ${className}`}>
       {children}
     </span>
   );
 }
+
 

@@ -2,7 +2,7 @@ import { isWooConfigured, wooFetch } from './config';
 import { seedProducts } from '@/constants/seedCatalog';
 import type { WooProduct } from '@/types/woocommerce';
 
-let localCatalog: WooProduct[] = [];
+let localCatalog: WooProduct[] = seedProducts.map(normalizeWooProduct);
 
 export function normalizeWooProduct(p: any): WooProduct {
   const priceNum = parseFloat(p.price) || 0;
